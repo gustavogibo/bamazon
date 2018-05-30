@@ -104,7 +104,7 @@ function viewProducts(option) {
 
         console.log("=====================");
         console.log("Everything's fine, sir! No low stock today!");
-        console.log("=====================");
+        console.log("====================="); 
 
       }
     });
@@ -153,7 +153,11 @@ function actionUsername(input) {
 
       } else {
 
-        console.log(0);
+        console.log("Username and/or password are incorrect. Please try again!");
+
+        setTimeout(function() {
+          start();
+        }, 1000);
 
       }
     }
@@ -164,7 +168,6 @@ function actionUsername(input) {
 
 function optionsGuest() {
   viewProducts(1);
-
 
   setTimeout(function () { 
 
@@ -191,8 +194,6 @@ function optionsGuest() {
     });
 
   }, 1000);
-
-  
 
 }
 
@@ -290,7 +291,7 @@ function optionsManager() {
   var manager = [{
     type:"list",
     message:"Please, select your options",
-    choices: ["View products for sale", "View low inventory", "Add to Inventory", "Add new product"],
+    choices: ["View products for sale", "View low inventory", "Add to Inventory", "Add new product", "Log out"],
     name:"action"
   }];
 
@@ -325,6 +326,15 @@ function optionsManager() {
         addNewProduct();
 
       break;
+      case "Log out":
+
+        setTimeout(function() {
+
+          start();
+
+        }, 1000);
+
+      break;
 
     }
 
@@ -335,6 +345,35 @@ function optionsManager() {
 }
 
 function addToInventory() {
+  viewProducts(1);
+  
+  setTimeout(function () { 
+
+    var inputManager = [{
+      type:"input",
+      message:"Choose the item that you would like to increase its stock. Type 'q' to exit.",
+      name:"itemId"
+      }
+    ];
+
+    inquirer.prompt(inputManager).then(function(response) {
+
+      var answer = response.itemId;
+      if(answer.toLowerCase() == "q") {
+  
+        optionsManager();
+  
+      } else {
+  
+        selectItemQuantity(answer);
+  
+      }
+  
+    });
+
+  }, 1000);
+
+  
 
 }
 
