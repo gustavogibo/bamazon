@@ -45,7 +45,7 @@ function start() {
 
 };
 
-function viewProducts() {
+function viewProducts(option) {
   var header = ["ID", "Name", "Department", "Stock", "Price"];
   var tableResult = [];
   var tablePart;
@@ -53,34 +53,73 @@ function viewProducts() {
 
   tableResult.push(header);
 
-  connection.query("SELECT * FROM products", function(err, results) {
+  if(option === 1) {
 
-    for (let index = 0; index < results.length; index++) {
-      
-      tablePart = [
-        results[index].item_id,
-        results[index].product_name,
-        results[index].department_name,
-        results[index].stock_quantity,
-        results[index].price
-      ];
+    connection.query("SELECT * FROM products", function(err, results) {
 
-      tableResult.push(tablePart);
-    }
+      for (let index = 0; index < results.length; index++) {
+        
+        tablePart = [
+          results[index].item_id,
+          results[index].product_name,
+          results[index].department_name,
+          results[index].stock_quantity,
+          results[index].price
+        ];
 
-    output = table(tableResult);
+        tableResult.push(tablePart);
+      }
 
-    console.log(output);
+      output = table(tableResult);
 
-  });
+      console.log(output);
+
+    });
+
+  } else {
+
+    connection.query("SELECT * FROM products WHERE stock_quantity < 5", function(err, results) {
+
+      if(results.length > 0) {
+
+        for (let index = 0; index < results.length; index++) {
+          
+          tablePart = [
+            results[index].item_id,
+            results[index].product_name,
+            results[index].department_name,
+            results[index].stock_quantity,
+            results[index].price
+          ];
+
+          tableResult.push(tablePart);
+        }
+
+
+        output = table(tableResult);
+
+        console.log(output);
+
+      } else {
+
+        console.log("=====================");
+        console.log("Everything's fine, sir! No low stock today!");
+        console.log("=====================");
+
+      }
+    });
+
+  }
 }
 
 function actionUsername(input) {
 
   connection.query(
     "SELECT * FROM users WHERE username= ? AND password= ?",
-    [input.username,
-    md5(input.password)],
+    [
+      input.username,
+      md5(input.password)
+    ],
     function(err, res) {
       
       if(res.length != 0) {
@@ -124,7 +163,7 @@ function actionUsername(input) {
 }
 
 function optionsGuest() {
-  viewProducts();
+  viewProducts(1);
 
 
   setTimeout(function () { 
@@ -239,7 +278,7 @@ function updateStock(id, finalQuantity, quantity, price) {
 
     setTimeout(function () {
       optionsGuest();
-    }, 1000);
+    }, 2000);
 
 
   });
@@ -247,6 +286,55 @@ function updateStock(id, finalQuantity, quantity, price) {
 }
 
 function optionsManager() {
+
+  var manager = [{
+    type:"list",
+    message:"Please, select your options",
+    choices: ["View products for sale", "View low inventory", "Add to Inventory", "Add new product"],
+    name:"action"
+  }];
+
+  inquirer.prompt(manager).then(function (response) {
+
+    switch(response.action) {
+      case "View products for sale":
+
+        viewProducts(1);
+
+        setTimeout(function() {
+          optionsManager();
+        }, 2000);
+
+      break;
+      case "View low inventory":
+
+        viewProducts(2);
+
+        setTimeout(function() {
+          optionsManager();
+        }, 2000);
+
+      break;
+      case "Add to Inventory":
+
+        addToInventory();
+
+      break;
+      case "Add new product":
+
+        addNewProduct();
+
+      break;
+
+    }
+
+  });
+
+  
+
+}
+
+function addToInventory() {
 
 }
 
