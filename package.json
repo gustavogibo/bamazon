@@ -18,6 +18,11 @@
   },
   "homepage": "https://github.com/gustavogibo/bamazon#readme",
   "dependencies": {
-    "mysql": "^2.15.0"
+    "chalk": "^2.4.1",
+    "inquirer": "^5.2.0",
+    "md5": "^2.2.1",
+    "mysql": "^2.15.0",
+    "require": "^2.4.20",
+    "table": "^4.0.3"
   }
 }

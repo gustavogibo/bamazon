@@ -1,0 +1,247 @@
+var mysql = require("mysql");
+var inquirer = require("inquirer");
+var {table} = require("table");
+var md5 = require("md5");
+
+// create the connection information for the sql database
+var connection = mysql.createConnection({
+    host: "localhost",
+    port: 3306,
+    user: "root",
+    password: "root",
+    database: "bamazon"
+  });
+  
+// connect to the mysql server and sql database
+connection.connect(function(err) {
+if (err) throw err;
+// run the start function after the connection is made to prompt the user
+// start();
+// viewProducts();
+start();
+});
+
+function start() {
+
+    var welcomeOptions = [{
+      type:"input",
+      message:"Please inform your username",
+      name:"username"
+    },
+    {
+      type:"password",
+      mask: '*',
+      message:"Please inform your password",
+      name:"password"
+    }];
+
+    // inquirer.prompt(welcomeOptions).then(actionUsername(response));
+    inquirer.prompt(welcomeOptions).then(function(response) {
+      actionUsername(response);
+      // console.log(response);
+
+    });
+
+};
+
+function viewProducts() {
+  var header = ["ID", "Name", "Department", "Stock", "Price"];
+  var tableResult = [];
+  var tablePart;
+  var output;
+
+  tableResult.push(header);
+
+  connection.query("SELECT * FROM products", function(err, results) {
+
+    for (let index = 0; index < results.length; index++) {
+      
+      tablePart = [
+        results[index].item_id,
+        results[index].product_name,
+        results[index].department_name,
+        results[index].stock_quantity,
+        results[index].price
+      ];
+
+      tableResult.push(tablePart);
+    }
+
+    output = table(tableResult);
+
+    console.log(output);
+
+  });
+}
+
+function actionUsername(input) {
+
+  connection.query(
+    "SELECT * FROM users WHERE username= ? AND password= ?",
+    [input.username,
+    md5(input.password)],
+    function(err, res) {
+      
+      if(res.length != 0) {
+
+        console.log("================");
+        console.log("Welcome, "+res[0].username+"!");
+        console.log("================");
+
+        switch(res[0].department) {
+
+          case 1:
+
+            optionsGuest();
+
+          break;
+
+          case 2:
+
+            optionsManager();
+
+          break;
+
+          case 3:
+
+            optionsSupervisor();
+
+          break;
+        }
+
+
+
+      } else {
+
+        console.log(0);
+
+      }
+    }
+  );
+
+
+}
+
+function optionsGuest() {
+  viewProducts();
+
+
+  setTimeout(function () { 
+
+    var inputGuest = [{
+      type:"input",
+      message:"Choose the item that you would like to buy by its ID. Type 'q' to exit.",
+      name:"itemId"
+      }
+    ];
+
+    inquirer.prompt(inputGuest).then(function(response) {
+
+      var answer = response.itemId;
+      if(answer.toLowerCase() == "q") {
+  
+        start();
+  
+      } else {
+  
+        selectItemQuantity(answer);
+  
+      }
+  
+    });
+
+  }, 1000);
+
+  
+
+}
+
+function selectItemQuantity(itemId) {
+
+  connection.query("SELECT * FROM products WHERE item_id = ?", itemId, function(err, result) {
+
+    if(result.length > 0) {
+
+
+      console.log("You selected "+result[0].product_name);
+
+      setTimeout(function (itemId) {
+
+        var selectQuantity = [{
+
+          type:"input",
+          name:"quantity",
+          message:"Please choose the quantity of the chosen item."
+  
+        }];
+
+        inquirer.prompt(selectQuantity).then(function(response) {
+
+          var answer = response.quantity;
+      
+            checkStock(answer, itemId);
+      
+        });
+
+      }, 1000);
+
+
+
+    } else {
+
+      console.log("Please choose an existing ID!");
+      setTimeout(function () { 
+        optionsGuest();
+       }, 2000);
+
+    }
+
+  });
+
+}
+
+function checkStock(quantity, productId) {
+
+  var updatedQuantity = 0;
+
+  connection.query("SELECT * FROM products WHERE item_id = ?", productId, function(err, result) {
+
+    if(parseInt(result[0].stock_quantity) > parseInt(quantity)) {
+
+      updatedQuantity = parseInt(result[0].stock_quantity) - parseInt(quantity);
+
+      updateStock(productId, updatedQuantity);
+
+    } else {
+
+      console.log("There is not enough quantity for this item. Please choose a smaller quantity.");
+
+      setTimeout(function (productId) {
+
+        selectItemQuantity(productId);
+
+      }, 1000);
+
+    }
+
+  });
+
+}
+
+function updateStock() {
+
+  connection.query("UPDATE products SET item_id = ?", productId, function(err, result) {
+
+
+
+  });
+
+}
+
+function optionsManager() {
+
+}
+
+function optionsSupervisor() {
+
+}
