@@ -3,6 +3,7 @@ var inquirer = require("inquirer");
 var {table} = require("table");
 var md5 = require("md5");
 
+
 // create the connection information for the sql database
 var connection = mysql.createConnection({
     host: "localhost",
@@ -161,12 +162,12 @@ function selectItemQuantity(itemId) {
   connection.query("SELECT * FROM products WHERE item_id = ?", itemId, function(err, result) {
 
     if(result.length > 0) {
-
+      // console.log("165",result)
 
       console.log("You selected "+result[0].product_name);
 
-      setTimeout(function (itemId) {
-
+      setTimeout(function () {
+          // console.log("170", itemId)
         var selectQuantity = [{
 
           type:"input",
@@ -175,11 +176,10 @@ function selectItemQuantity(itemId) {
   
         }];
 
-        inquirer.prompt(selectQuantity).then(function(response) {
+        inquirer.prompt(selectQuantity).then(function(response, itemId) {
 
           var answer = response.quantity;
-      
-            checkStock(answer, itemId);
+            checkStock(answer, result[0].item_id);
       
         });
 
@@ -204,13 +204,15 @@ function checkStock(quantity, productId) {
 
   var updatedQuantity = 0;
 
-  connection.query("SELECT * FROM products WHERE item_id = ?", productId, function(err, result) {
+  connection.query("SELECT * FROM products WHERE item_id = ?", [productId], function(err, result) {
+
+    console.log(productId);
 
     if(parseInt(result[0].stock_quantity) > parseInt(quantity)) {
 
       updatedQuantity = parseInt(result[0].stock_quantity) - parseInt(quantity);
 
-      updateStock(productId, updatedQuantity);
+      updateStock(productId, updatedQuantity, quantity, result[0].price);
 
     } else {
 
@@ -228,10 +230,16 @@ function checkStock(quantity, productId) {
 
 }
 
-function updateStock() {
+function updateStock(id, finalQuantity, quantity, price) {
 
-  connection.query("UPDATE products SET item_id = ?", productId, function(err, result) {
+  connection.query("UPDATE products SET stock_quantity = ? WHERE item_id = ?", [finalQuantity, id], function(err, result) {
 
+    var finalPrice = parseInt(quantity) * parseFloat(price);
+    console.log("Product Updated! Your total is " +finalPrice+". See you next time!");
+
+    setTimeout(function () {
+      optionsGuest();
+    }, 1000);
 
 
   });
