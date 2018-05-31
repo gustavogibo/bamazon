@@ -424,13 +424,69 @@ function updateInventory(itemId) {
 
       console.log("Please choose an existing ID!");
       setTimeout(function () { 
-        optionsGuest();
+        optionsManager();
        }, 2000);
 
     }
 
   });
 
+}
+
+function addNewProduct() {
+
+  var newProductInfo = [
+    {
+      type:"input",
+      name:"name",
+      message:"What's the product name?"
+    },
+    {
+      type:"input",
+      name:"department",
+      message:"What's the product department?",
+    },
+    {
+      type:"input",
+      name:"price",
+      message:"What's the product price?",
+    },
+    {
+      type:"input",
+      name:"quantity",
+      message:"What's the product quantity?",
+    }
+  ];
+
+  inquirer.prompt(newProductInfo).then(function(response) {
+
+    var queryInsert = "INSERT INTO products (product_name, department_name, stock_quantity, price) values (?, ?, "+parseInt(response.quantity)+", "+parseFloat(response.price)+")";
+
+    console.log(queryInsert);
+
+    connection.query(queryInsert, [response.name, response.department], function(err, result) {
+
+      if(err) {
+
+        console.log(err);
+
+      } else {
+
+        console.log("Product created! Check it out the updated product list.");
+
+        setTimeout(function () { 
+          viewProducts(1);
+        }, 1000);
+
+        setTimeout(function () { 
+          optionsManager();
+        }, 3000);
+
+      }  
+  
+    });
+
+  })
 }
 
 function optionsSupervisor() {
