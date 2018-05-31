@@ -365,7 +365,7 @@ function addToInventory() {
   
       } else {
   
-        selectItemQuantity(answer);
+        updateInventory(answer);
   
       }
   
@@ -374,6 +374,62 @@ function addToInventory() {
   }, 1000);
 
   
+
+}
+
+function updateInventory(itemId) {
+
+  connection.query("SELECT * FROM products WHERE item_id = ?", itemId, function(err, result) {
+
+    if(result.length > 0) {
+      // console.log("165",result)
+
+      console.log("You selected "+result[0].product_name);
+
+      setTimeout(function () {
+
+        var selectQuantity = [{
+
+          type:"input",
+          name:"quantity",
+          message:"Please choose the quantity that you want to add."
+  
+        }];
+
+        inquirer.prompt(selectQuantity).then(function(response) {
+
+          console.log("401", parseInt(result[0].stock_quantity));
+          console.log("402", parseInt(response.quantity));
+
+          var finalQuantity = parseInt(result[0].stock_quantity) + parseInt(response.quantity);
+          
+          connection.query("UPDATE products SET stock_quantity = ? WHERE item_id = ?", [finalQuantity, itemId], function(err, result) {
+
+            console.log("Product Updated! The total quantity stock is " +finalQuantity+". See you next time!");
+        
+            setTimeout(function () {
+              optionsManager();
+            }, 2000);
+        
+        
+          });
+      
+        });
+
+      }, 1000);
+
+
+
+    } else {
+
+      console.log("Please choose an existing ID!");
+      setTimeout(function () { 
+        optionsGuest();
+       }, 2000);
+
+    }
+
+  });
 
 }
 
