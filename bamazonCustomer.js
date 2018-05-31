@@ -46,7 +46,7 @@ function start() {
 };
 
 function viewProducts(option) {
-  var header = ["ID", "Name", "Department", "Stock", "Price"];
+  var header = ["ID", "Name", "Department", "Price"];
   var tableResult = [];
   var tablePart;
   var output;
@@ -63,7 +63,6 @@ function viewProducts(option) {
           results[index].item_id,
           results[index].product_name,
           results[index].department_name,
-          results[index].stock_quantity,
           results[index].price
         ];
 
@@ -160,7 +159,7 @@ function actionUsername(input) {
           }, 1000);
 
         }
-        
+
       }
 
     });
@@ -254,6 +253,8 @@ function checkStock(quantity, productId) {
 
   var updatedQuantity = 0;
 
+  var updateSales = 0;
+
   connection.query("SELECT * FROM products WHERE item_id = ?", [productId], function(err, result) {
 
     if(err) {
@@ -266,7 +267,9 @@ function checkStock(quantity, productId) {
 
         updatedQuantity = parseInt(result[0].stock_quantity) - parseInt(quantity);
 
-        updateStock(productId, updatedQuantity, quantity, result[0].price);
+        updateSales = parseInt(quantity) + parseInt(result[0].product_sales);
+
+        updateStock(productId, updatedQuantity, quantity, result[0].price, updateSales);
 
       } else {
 
@@ -286,9 +289,9 @@ function checkStock(quantity, productId) {
 
 }
 
-function updateStock(id, finalQuantity, quantity, price) {
+function updateStock(id, finalQuantity, quantity, price, stock_sales) {
 
-  connection.query("UPDATE products SET stock_quantity = ? WHERE item_id = ?", [finalQuantity, id], function(err, result) {
+  connection.query("UPDATE products SET stock_quantity = ?, product_sales = ? WHERE item_id = ?", [finalQuantity, stock_sales, id], function(err, result) {
 
     if(err) {
 
@@ -297,7 +300,7 @@ function updateStock(id, finalQuantity, quantity, price) {
     } else {
 
       var finalPrice = parseInt(quantity) * parseFloat(price);
-      console.log("Product Updated! Your total is " +finalPrice+". See you next time!");
+      console.log("Product Updated! Your total is " +finalPrice.toFixed(2)+". See you next time!");
 
       setTimeout(function () {
         optionsGuest();
@@ -362,8 +365,6 @@ function optionsManager() {
     }
 
   });
-
-  
 
 }
 
@@ -490,7 +491,7 @@ function addNewProduct() {
 
   inquirer.prompt(newProductInfo).then(function(response) {
 
-    var queryInsert = "INSERT INTO products (product_name, department_name, stock_quantity, price) values (?, ?, "+parseInt(response.quantity)+", "+parseFloat(response.price)+")";
+    var queryInsert = "INSERT INTO products (product_name, department_name, stock_quantity, price, product_sales) values (?, ?, "+parseInt(response.quantity)+", "+parseFloat(response.price)+", 0)";
 
     console.log(queryInsert);
 
@@ -520,5 +521,87 @@ function addNewProduct() {
 }
 
 function optionsSupervisor() {
+
+  var supervisor = [{
+    type:"list",
+    message:"Please, select your options",
+    choices: ["Report - Products Sales by department", "Add New Department", "Log out"],
+    name:"action"
+  }];
+
+  inquirer.prompt(supervisor).then(function (response) {
+
+    switch(response.action) {
+      case "Report - Products Sales by department":
+
+        showSalesByDepartment();
+
+        setTimeout(function() {
+          optionsSupervisor();
+        }, 2000);
+
+      break;
+      case "Add New Department":
+
+        addNewDepartment();
+
+        setTimeout(function() {
+          optionsSupervisor();
+        }, 2000);
+
+      break;
+      
+      case "Log out":
+
+        setTimeout(function() {
+
+          start();
+
+        }, 1000);
+
+      break;
+
+    }
+
+  });
+
+
+}
+
+function showSalesByDepartment() {
+
+  var header = ["ID", "Department", "Overhead Costs", "Product Sales", "Profit"];
+  var tableResult = [];
+  var tablePart;
+  var output;
+
+  tableResult.push(header);
+
+  var queryResults = "SELECT dep.department_id, dep.department_name, dep.over_head_costs, SUM(prod.product_sales) as sales, (prod.product_sales - dep.over_head_costs) as profit from departments dep RIGHT JOIN products prod ON dep.department_name = prod.department_name GROUP BY dep.department_name ORDER BY dep.department_id;"
+
+    connection.query(queryResults, function(err, results) {
+
+      for (let index = 0; index < results.length; index++) {
+        
+        tablePart = [
+          results[index].department_id,
+          results[index].department_name,
+          results[index].over_head_costs,
+          results[index].sales,
+          results[index].profit
+        ];
+
+        tableResult.push(tablePart);
+      }
+
+      output = table(tableResult);
+
+      console.log(output);
+
+    });
+
+  
+
+
 
 }
