@@ -1,6 +1,6 @@
 # Bamazon - Built with Node.js, Javascript and MySQL 
 
-![demo](./gifs/guest.gif)
+![demo](./gifs/demo.gif)
 
 I'm a big fan of Amazon, so this is a simple version of it, with three user levels: Guest, Manager and Supervisor, each one of them with different roles and options. Enjoy! 
 
