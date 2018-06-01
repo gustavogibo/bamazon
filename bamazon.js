@@ -148,8 +148,6 @@ function actionUsername(input) {
             break;
           }
 
-
-
         } else {
 
           console.log("Username and/or password are incorrect. Please try again!");
@@ -163,7 +161,6 @@ function actionUsername(input) {
       }
 
     });
-
 
 }
 
@@ -517,7 +514,7 @@ function addNewProduct() {
   
     });
 
-  })
+  });
 }
 
 function optionsSupervisor() {
@@ -545,10 +542,6 @@ function optionsSupervisor() {
 
         addNewDepartment();
 
-        setTimeout(function() {
-          optionsSupervisor();
-        }, 2000);
-
       break;
       
       case "Log out":
@@ -564,7 +557,6 @@ function optionsSupervisor() {
     }
 
   });
-
 
 }
 
@@ -600,8 +592,45 @@ function showSalesByDepartment() {
 
     });
 
+}
+
+function addNewDepartment() {
+
+  var newDepartment = [
+    {
+      type:"input",
+      name:"name",
+      message:"What's the department name?",
+    },
+    {
+      type:"input",
+      name:"overhead",
+      message:"What's the Overhead cost?",
+    }
+  ];
+
+  inquirer.prompt(newDepartment).then(function(response) {
+
+    var queryInsert = "INSERT INTO departments (department_name, over_head_costs) values (?, ?)";
+
+    connection.query(queryInsert, [response.name, parseInt(response.overhead)], function(err, result) {
+
+      if(err) {
+
+        console.log(err);
+
+      } else {
+
+        console.log("Department created!");
+
+        setTimeout(function () { 
+          optionsSupervisor();
+        }, 3000);
+
+      }  
   
+    });
 
-
+  });
 
 }
