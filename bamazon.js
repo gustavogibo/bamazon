@@ -2,6 +2,7 @@ var mysql = require("mysql");
 var inquirer = require("inquirer");
 var {table} = require("table");
 var md5 = require("md5");
+var chalk = require("chalk");
 
 
 // create the connection information for the sql database
@@ -26,20 +27,19 @@ function start() {
 
     var welcomeOptions = [{
       type:"input",
-      message:"Please inform your username",
+      message:chalk.green("Please inform your username"),
       name:"username"
     },
     {
       type:"password",
       mask: '*',
-      message:"Please inform your password",
+      message:chalk.green("Please inform your password"),
       name:"password"
     }];
 
     // inquirer.prompt(welcomeOptions).then(actionUsername(response));
     inquirer.prompt(welcomeOptions).then(function(response) {
       actionUsername(response);
-      // console.log(response);
 
     });
 
@@ -47,13 +47,16 @@ function start() {
 
 function viewProducts(option) {
   var header = ["ID", "Name", "Department", "Price"];
+  var headerLowInventory = ["ID", "Name", "Department", "Stock", "Price"];
   var tableResult = [];
   var tablePart;
   var output;
 
-  tableResult.push(header);
+  
 
   if(option === 1) {
+
+    tableResult.push(header);
 
     connection.query("SELECT * FROM products", function(err, results) {
 
@@ -71,11 +74,42 @@ function viewProducts(option) {
 
       output = table(tableResult);
 
-      console.log(output);
+      console.log(chalk.green(output));
+
+    });
+
+  } else if(option == 2){
+
+    tableResult.push(headerLowInventory);
+
+    connection.query("SELECT * FROM products", function(err, results) {
+
+      if(results.length > 0) {
+
+        for (let index = 0; index < results.length; index++) {
+          
+          tablePart = [
+            results[index].item_id,
+            results[index].product_name,
+            results[index].department_name,
+            results[index].stock_quantity,
+            results[index].price
+          ];
+
+          tableResult.push(tablePart);
+        }
+
+        output = table(tableResult);
+
+        console.log(chalk.green(output));
+
+      }
 
     });
 
   } else {
+
+    tableResult.push(headerLowInventory);
 
     connection.query("SELECT * FROM products WHERE stock_quantity < 5", function(err, results) {
 
@@ -94,16 +128,15 @@ function viewProducts(option) {
           tableResult.push(tablePart);
         }
 
-
         output = table(tableResult);
 
-        console.log(output);
+        console.log(chalk.green(output));
 
       } else {
 
-        console.log("=====================");
+        console.log(chalk.blue("====================="));
         console.log("Everything's fine, sir! No low stock today!");
-        console.log("====================="); 
+        console.log(chalk.green("=====================")); 
 
       }
     });
@@ -123,34 +156,43 @@ function actionUsername(input) {
         
         if(res.length != 0) {
 
-          console.log("================");
+          console.log(chalk.green("================"));
           console.log("Welcome, "+res[0].username+"!");
-          console.log("================");
+          console.log(chalk.green("================"));
 
           switch(res[0].department) {
 
             case 1:
 
-              optionsGuest();
+              setTimeout(function () {
+                optionsGuest();
+              },1000);
+              
 
             break;
 
             case 2:
 
-              optionsManager();
+              setTimeout(function () {
+                optionsManager();
+              },1000);
+
+              
 
             break;
 
             case 3:
 
-              optionsSupervisor();
-
+              setTimeout(function () {
+                optionsSupervisor();
+              },1000);
+              
             break;
           }
 
         } else {
 
-          console.log("Username and/or password are incorrect. Please try again!");
+          console.log(chalk.red("Username and/or password are incorrect. Please try again!"));
 
           setTimeout(function() {
             start();
@@ -171,7 +213,7 @@ function optionsGuest() {
 
     var inputGuest = [{
       type:"input",
-      message:"Choose the item that you would like to buy by its ID. Type 'q' to exit.",
+      message:chalk.green("Choose the item that you would like to buy by its ID. Type 'q' to exit."),
       name:"itemId"
       }
     ];
@@ -206,17 +248,16 @@ function selectItemQuantity(itemId) {
     } else {
 
       if(result.length > 0) {
-        // console.log("165",result)
 
-        console.log("You selected "+result[0].product_name);
+        console.log(chalk.blue("You selected "+result[0].product_name));
 
         setTimeout(function () {
-            // console.log("170", itemId)
+
           var selectQuantity = [{
 
             type:"input",
             name:"quantity",
-            message:"Please choose the quantity of the chosen item."
+            message:chalk.green("Please choose the quantity of the chosen item.")
     
           }];
 
@@ -229,11 +270,9 @@ function selectItemQuantity(itemId) {
 
         }, 1000);
 
-
-
       } else {
 
-        console.log("Please choose an existing ID!");
+        console.log(chalk.red("Please choose an existing ID!"));
         setTimeout(function () { 
           optionsGuest();
         }, 2000);
@@ -270,7 +309,7 @@ function checkStock(quantity, productId) {
 
       } else {
 
-        console.log("There is not enough quantity for this item. Please choose a smaller quantity.");
+        console.log(chalk.red("There is not enough quantity for this item. Please choose a smaller quantity."));
 
         setTimeout(function (productId) {
 
@@ -297,7 +336,7 @@ function updateStock(id, finalQuantity, quantity, price, stock_sales) {
     } else {
 
       var finalPrice = parseInt(quantity) * parseFloat(price);
-      console.log("Product Updated! Your total is " +finalPrice.toFixed(2)+". See you next time!");
+      console.log(chalk.blue("Product Updated! Your total is " +finalPrice.toFixed(2)+". See you next time!"));
 
       setTimeout(function () {
         optionsGuest();
@@ -313,7 +352,7 @@ function optionsManager() {
 
   var manager = [{
     type:"list",
-    message:"Please, select your options",
+    message:chalk.green("Please, select your options"),
     choices: ["View products for sale", "View low inventory", "Add to Inventory", "Add new product", "Log out"],
     name:"action"
   }];
@@ -332,7 +371,7 @@ function optionsManager() {
       break;
       case "View low inventory":
 
-        viewProducts(2);
+        viewProducts(3);
 
         setTimeout(function() {
           optionsManager();
@@ -366,13 +405,14 @@ function optionsManager() {
 }
 
 function addToInventory() {
-  viewProducts(1);
+
+  viewProducts(2);
   
   setTimeout(function () { 
 
     var inputManager = [{
       type:"input",
-      message:"Choose the item that you would like to increase its stock. Type 'q' to exit.",
+      message:chalk.green("Choose the item that you would like to increase its stock. Type 'q' to exit."),
       name:"itemId"
       }
     ];
@@ -410,7 +450,7 @@ function updateInventory(itemId) {
 
       if(result.length > 0) {
 
-        console.log("You selected "+result[0].product_name);
+        console.log(chalk.blue("You selected "+result[0].product_name));
 
         setTimeout(function () {
 
@@ -418,20 +458,17 @@ function updateInventory(itemId) {
 
             type:"input",
             name:"quantity",
-            message:"Please choose the quantity that you want to add."
+            message:chalk.green("Please choose the quantity that you want to add.")
     
           }];
 
           inquirer.prompt(selectQuantity).then(function(response) {
 
-            console.log("401", parseInt(result[0].stock_quantity));
-            console.log("402", parseInt(response.quantity));
-
             var finalQuantity = parseInt(result[0].stock_quantity) + parseInt(response.quantity);
             
             connection.query("UPDATE products SET stock_quantity = ? WHERE item_id = ?", [finalQuantity, itemId], function(err, result) {
 
-              console.log("Product Updated! The total quantity stock is " +finalQuantity+". See you next time!");
+              console.log(chalk.green("Product Updated! The total quantity stock is " +finalQuantity+". See you next time!"));
           
               setTimeout(function () {
                 optionsManager();
@@ -448,7 +485,7 @@ function updateInventory(itemId) {
 
       } else {
 
-        console.log("Please choose an existing ID!");
+        console.log(chalk.red("Please choose an existing ID!"));
         setTimeout(function () { 
           optionsManager();
         }, 2000);
@@ -467,30 +504,28 @@ function addNewProduct() {
     {
       type:"input",
       name:"name",
-      message:"What's the product name?"
+      message:chalk.green("What's the product name?")
     },
     {
       type:"input",
       name:"department",
-      message:"What's the product department?",
+      message:chalk.green("What's the product department?"),
     },
     {
       type:"input",
       name:"price",
-      message:"What's the product price?",
+      message:chalk.green("What's the product price?"),
     },
     {
       type:"input",
       name:"quantity",
-      message:"What's the product quantity?",
+      message:chalk.green("What's the product quantity?"),
     }
   ];
 
   inquirer.prompt(newProductInfo).then(function(response) {
 
     var queryInsert = "INSERT INTO products (product_name, department_name, stock_quantity, price, product_sales) values (?, ?, "+parseInt(response.quantity)+", "+parseFloat(response.price)+", 0)";
-
-    console.log(queryInsert);
 
     connection.query(queryInsert, [response.name, response.department], function(err, result) {
 
@@ -500,7 +535,7 @@ function addNewProduct() {
 
       } else {
 
-        console.log("Product created! Check it out the updated product list.");
+        console.log(chalk.green("Product created! Check it out the updated product list."));
 
         setTimeout(function () { 
           viewProducts(1);
@@ -521,7 +556,7 @@ function optionsSupervisor() {
 
   var supervisor = [{
     type:"list",
-    message:"Please, select your options",
+    message:chalk.green("Please, select your options"),
     choices: ["Report - Products Sales by department", "Add New Department", "Log out"],
     name:"action"
   }];
@@ -569,7 +604,7 @@ function showSalesByDepartment() {
 
   tableResult.push(header);
 
-  var queryResults = "SELECT dep.department_id, dep.department_name, dep.over_head_costs, SUM(prod.product_sales) as sales, (prod.product_sales - dep.over_head_costs) as profit from departments dep RIGHT JOIN products prod ON dep.department_name = prod.department_name GROUP BY dep.department_name ORDER BY dep.department_id;"
+  var queryResults = "SELECT dep.department_id, dep.department_name, dep.over_head_costs, SUM(prod.product_sales) as sales, (prod.product_sales - dep.over_head_costs) as profit from departments dep INNER JOIN products prod ON dep.department_name = prod.department_name GROUP BY dep.department_name ORDER BY dep.department_id;"
 
     connection.query(queryResults, function(err, results) {
 
@@ -588,7 +623,7 @@ function showSalesByDepartment() {
 
       output = table(tableResult);
 
-      console.log(output);
+      console.log(chalk.green(output));
 
     });
 
@@ -600,12 +635,12 @@ function addNewDepartment() {
     {
       type:"input",
       name:"name",
-      message:"What's the department name?",
+      message:chalk.green("What's the department name?"),
     },
     {
       type:"input",
       name:"overhead",
-      message:"What's the Overhead cost?",
+      message:chalk.green("What's the Overhead cost?"),
     }
   ];
 
@@ -621,7 +656,7 @@ function addNewDepartment() {
 
       } else {
 
-        console.log("Department created!");
+        console.log(chalk.green("Department created!"));
 
         setTimeout(function () { 
           optionsSupervisor();
