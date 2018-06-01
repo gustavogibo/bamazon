@@ -30,8 +30,6 @@ npm i
 
 ## Using the App :computer:
 
-![demo2](./gifs/2.gif)
-
 Type `node bamazon.js` into your terminal to begin using the app. You can navigate through the commands using the up and down arrows and hitting enter. 
 
 To exit the app either hold down `control + c`
