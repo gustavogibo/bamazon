@@ -362,7 +362,7 @@ function optionsManager() {
     switch(response.action) {
       case "View products for sale":
 
-        viewProducts(1);
+        viewProducts(2);
 
         setTimeout(function() {
           optionsManager();
@@ -604,7 +604,7 @@ function showSalesByDepartment() {
 
   tableResult.push(header);
 
-  var queryResults = "SELECT dep.department_id, dep.department_name, dep.over_head_costs, SUM(prod.product_sales) as sales, (prod.product_sales - dep.over_head_costs) as profit from departments dep INNER JOIN products prod ON dep.department_name = prod.department_name GROUP BY dep.department_name ORDER BY dep.department_id;"
+  var queryResults = "SELECT dep.department_id, dep.department_name, dep.over_head_costs, SUM(prod.product_sales) as sales, (SUM(prod.product_sales) - dep.over_head_costs) as profit from departments dep INNER JOIN products prod ON dep.department_name = prod.department_name GROUP BY dep.department_name ORDER BY dep.department_id;"
 
     connection.query(queryResults, function(err, results) {
 
